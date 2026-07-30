@@ -240,6 +240,9 @@ export default function Player() {
     media_type,
     season,
     episode,
+    title,
+    year,
+    date: String(date),
     enable: metadataLoad, // or tie it to source being loaded
   });
   const { data: introData } = useIntro({
@@ -258,7 +261,11 @@ export default function Player() {
     enabled: metadataLoad,
   });
   const dubs = source?.dubs || [];
-  const mergeSubtitles = [...(source?.subtitles || []), ...openSubtitleData];
+  const mergeSubtitles = [
+    ...(source?.subtitles || []),
+    ...(subtitles || []),
+    ...openSubtitleData,
+  ];
 
   const isAuto = sourceQualityId === "auto" ? "0" : sourceQualityId;
   // ─── Video Player ────────────────────────────────────────────────────────────

@@ -8,7 +8,9 @@ interface UseSubtitleParams {
   media_type: string;
   season: number;
   episode: number;
-
+  title: string;
+  year: string;
+  date: string;
   enable: boolean;
 }
 
@@ -17,11 +19,13 @@ export default function useSubtitle({
   media_type,
   season,
   episode,
-
+  title,
+  year,
+  date,
   enable,
 }: UseSubtitleParams) {
   return useQuery<MediaOption[]>({
-    queryKey: ["get-subtitle", tmdbId, media_type, season, episode],
+    queryKey: ["get-subtitle", tmdbId, title, media_type, season, episode],
     enabled: enable,
     retry: false,
     staleTime: 1000 * 60 * 60,
@@ -30,7 +34,7 @@ export default function useSubtitle({
     refetchOnReconnect: false,
     queryFn: async () => {
       const { xt, rt } = generateFrontendToken(String(tmdbId));
-      const backendRes = await axios.post("/backend/token", {
+      const backendRes = await axios.post("/backend/token__", {
         [FIELD_MAP.id]: tmdbId,
         [FIELD_MAP.fToken]: xt,
         [FIELD_MAP.ts]: rt,
@@ -44,6 +48,9 @@ export default function useSubtitle({
         [FIELD_MAP.ts]: String(ts),
         [FIELD_MAP.token]: sig,
         [FIELD_MAP.fToken]: xt,
+        [FIELD_MAP.title]: title,
+        [FIELD_MAP.year]: year,
+        date: date,
       });
 
       if (media_type === "tv") {
