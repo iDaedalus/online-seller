@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
     });
 
     const res = await fetch(
-      `https://v-zxc-stream-xyz.up.railway.app/backend_/servers/icarus__?${params.toString()}`,
+      `https://v-zxc-streamm-xyz.up.railway.app/backend_/servers/icarus__?${params.toString()}`,
       { method: "GET" },
     );
 
