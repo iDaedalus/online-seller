@@ -1,102 +1,50 @@
-// ICARUS SERVER (thin proxy)
 import { NextRequest, NextResponse } from "next/server";
-import { validateBackendToken } from "@/lib/validate-token";
-import { isValidReferer } from "@/lib/allowed-referers";
-import { FIELD_MAP } from "@/lib/token";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL_SUS!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY_SUS!,
+);
 
 export async function GET(req: NextRequest) {
-  const logRequest = (status: number, reason: string) => {
-    const tmdbId = req.nextUrl.searchParams.get(FIELD_MAP.id);
-    const mediaType = req.nextUrl.searchParams.get("b");
-    const season = req.nextUrl.searchParams.get(FIELD_MAP.season);
-    const episode = req.nextUrl.searchParams.get(FIELD_MAP.episode);
-    const extra = mediaType === "tv" ? `/${season}/${episode}` : "";
+  const ip =
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown";
 
-    console.log(
-      `[ICARUS] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason}`,
-    );
-  };
+  console.log(`[SCRAPING ROUTE NO EXIST] | IP: ${ip}`);
 
   try {
-    const tmdbId = req.nextUrl.searchParams.get(FIELD_MAP.id);
-    const mediaType = req.nextUrl.searchParams.get("b");
-    const season = req.nextUrl.searchParams.get(FIELD_MAP.season);
-    const episode = req.nextUrl.searchParams.get(FIELD_MAP.episode);
-    const title = req.nextUrl.searchParams.get(FIELD_MAP.title);
-    const date = req.nextUrl.searchParams.get("date");
-    const ts = Number(req.nextUrl.searchParams.get(FIELD_MAP.ts));
-    const token = req.nextUrl.searchParams.get(FIELD_MAP.token)!;
-    const f_token = req.nextUrl.searchParams.get(FIELD_MAP.fToken)!;
-    const dubCode = req.nextUrl.searchParams.get("dubCode");
-    const dubType = req.nextUrl.searchParams.get("dubType");
+    const { data } = await supabase
+      .from("suspicious_ips")
+      .select("hits")
+      .eq("ip", ip)
+      .maybeSingle();
 
-    if (!tmdbId || !mediaType || !title || !date || !ts || !token) {
-      logRequest(404, "missing params");
-      return NextResponse.json(
-        { success: false, error: "need token" },
-        { status: 404 },
-      );
+    if (data) {
+      await supabase
+        .from("suspicious_ips")
+        .update({
+          hits: data.hits + 1,
+          last_seen: new Date().toISOString(),
+        })
+        .eq("ip", ip);
+    } else {
+      await supabase.from("suspicious_ips").insert({
+        ip,
+        hits: 1,
+        asn: req.headers.get("cf-connecting-asn"),
+        country: req.headers.get("cf-ipcountry"),
+        method: req.method,
+        path: req.nextUrl.pathname,
+        user_agent: req.headers.get("user-agent"),
+        referer: req.headers.get("referer"),
+      });
     }
-
-    if (Date.now() - ts > 30000) {
-      logRequest(403, "token expired");
-      return NextResponse.json(
-        { success: false, error: "Invalid token" },
-        { status: 403 },
-      );
-    }
-
-    if (!validateBackendToken(tmdbId, f_token, ts, token)) {
-      logRequest(403, "invalid token");
-      return NextResponse.json(
-        { success: false, error: "Invalid token" },
-        { status: 403 },
-      );
-    }
-
-    const referer = req.headers.get("referer") || "";
-    if (!isValidReferer(referer)) {
-      logRequest(403, "invalid referrer");
-      return NextResponse.json(
-        { success: false, error: "Forbidden" },
-        { status: 403 },
-      );
-    }
-
-    // Forward only the extraction params to Backend B
-    const params = new URLSearchParams({
-      tmdbId,
-      mediaType,
-      title,
-      date,
-      ...(season && { season }),
-      ...(episode && { episode }),
-      ...(dubCode && { dubCode }),
-      ...(dubType && { dubType }),
-    });
-
-    const res = await fetch(
-      `https://online-seller-two.vercel.app/backend_/servers/icarus__?${params.toString()}`,
-      { method: "GET" },
-    );
-
-    const data = await res.json();
-
-    if (!data.success) {
-      logRequest(data.status || 500, data.error || "extraction failed");
-      return NextResponse.json(
-        { success: false, error: data.error || "extraction failed" },
-        { status: data.status || 500 },
-      );
-    }
-
-    logRequest(200, "ICARUS OK!!!!!");
-    return NextResponse.json(data);
-  } catch (err: any) {
-    logRequest(500, `exception: ${err?.message}`);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 },
-    );
+  } catch (err) {
+    console.error("Failed to log suspicious IP:", err);
   }
+
+  return new NextResponse(null, { status: 429 });
 }
