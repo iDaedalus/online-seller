@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    logRequest(200, "ICARUS OK!!!!!");
+    logRequest(200, "OK");
     return NextResponse.json(data);
   } catch (err: any) {
     logRequest(500, `exception: ${err?.message}`);

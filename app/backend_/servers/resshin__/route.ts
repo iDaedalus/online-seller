@@ -3,10 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateBackendToken } from "@/lib/validate-token";
 import { FIELD_MAP } from "@/lib/token";
 
-// Change this to the URL of Backend B
-// const EXTRACTION_BACKEND_URL =
-//   process.env.RESSHIN_EXTRACTION_URL || "http://localhost:3000/extract";
-
 export async function GET(req: NextRequest) {
   const logRequest = (status: number, reason: string) => {
     const tmdbId = req.nextUrl.searchParams.get(FIELD_MAP.id);
