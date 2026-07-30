@@ -444,7 +444,7 @@ export default function Player() {
   useEffect(() => {
     if (trackedRef.current) return;
     if (isLoading) return;
-    if (metadataLoad) return;
+    if (!metadataLoad) return;
 
     trackedRef.current = true;
 
