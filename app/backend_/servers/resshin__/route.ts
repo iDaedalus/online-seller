@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
       dubType: String(dubType),
     });
     const res = await fetch(
-      `https://v-zxc-streamm-xyz.up.railway.app/backend_/servers/resshin_?${params.toString()}`,
+      `https://online-seller-two.vercel.app/backend_/servers/resshin_?${params.toString()}`,
       {
         method: "GET",
         // headers: {
