@@ -40,6 +40,7 @@ import { useAdsScript } from "@/hooks/useAdsScript";
 import { useSandboxDetection } from "@/hooks/useSandboxDetection";
 import { useTrackEmbedder } from "@/hooks/useTrackEmbedder";
 import Link from "next/link";
+import useSubtitle from "@/hooks/subs";
 function getRootDomain(url: string) {
   try {
     const hostname = new URL(url).hostname;
@@ -234,13 +235,13 @@ export default function Player() {
     dubType: dub || dubLang ? (dub ? type : dubType) : "",
   });
   const isSourceRateLimited = sourceError?.response?.status === 429;
-  // const { data: subtitles = [], isLoading: subtitlesLoading } = useSubtitle({
-  //   tmdbId,
-  //   media_type,
-  //   season,
-  //   episode,
-  //   enable: metadataLoad, // or tie it to source being loaded
-  // });
+  const { data: subtitles = [], isLoading: subtitlesLoading } = useSubtitle({
+    tmdbId,
+    media_type,
+    season,
+    episode,
+    enable: metadataLoad, // or tie it to source being loaded
+  });
   const { data: introData } = useIntro({
     imdbId,
     tmdbId,

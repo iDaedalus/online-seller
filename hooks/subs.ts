@@ -51,7 +51,7 @@ export default function useSubtitle({
         params.append(FIELD_MAP.episode, String(episode));
       }
 
-      const res = await axios.get(`/backend_/subtitle?${params.toString()}`);
+      const res = await axios.get(`/backend_/subtitle_?${params.toString()}`);
       return res.data.subtitles ?? [];
     },
   });
