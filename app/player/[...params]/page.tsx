@@ -443,7 +443,7 @@ export default function Player() {
 
   useEffect(() => {
     if (trackedRef.current) return;
-    if (isLoading) return;
+    if (isLoading || metadataLoad) return;
 
     trackedRef.current = true;
 
@@ -473,7 +473,7 @@ export default function Player() {
       embedder,
       sandbox: isSandboxed,
     });
-  }, [isLoading, isSandboxed, trackEmbedder]);
+  }, [isLoading, isSandboxed, trackEmbedder, metadataLoad]);
 
   // useEffect(() => {
   //   dubLangApplied.current = false;
