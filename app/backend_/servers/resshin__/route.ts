@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateBackendToken } from "@/lib/validate-token";
 import { FIELD_MAP } from "@/lib/token";
+import { isValidReferer } from "@/lib/allowed-referers";
 
 export async function GET(req: NextRequest) {
   const logRequest = (status: number, reason: string) => {
@@ -36,24 +37,37 @@ export async function GET(req: NextRequest) {
     const dubType = Number(req.nextUrl.searchParams.get("dubType") ?? "0");
 
     if (!tmdbId || !mediaType || !title || !date || !ts || !token) {
-      logRequest(404, "missing params");
+      logRequest(400, "missing params");
       return NextResponse.json(
         { success: false, error: "missing params" },
-        { status: 404 },
+        { status: 400 },
       );
     }
 
-    if (
-      Date.now() - ts > 120000 ||
-      !validateBackendToken(tmdbId, f_token, ts, token)
-    ) {
-      logRequest(403, "invalid token");
+    if (Date.now() - ts > 120000) {
+      logRequest(401, "token expired");
       return NextResponse.json(
         { success: false, error: "Invalid token" },
+        { status: 401 },
+      );
+    }
+
+    if (!validateBackendToken(tmdbId, f_token, ts, token)) {
+      logRequest(401, "invalid token");
+      return NextResponse.json(
+        { success: false, error: "Invalid token" },
+        { status: 401 },
+      );
+    }
+
+    const referer = req.headers.get("referer") || "";
+    if (!isValidReferer(referer)) {
+      logRequest(403, "invalid referrer");
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
         { status: 403 },
       );
     }
-
     // Forward only the extraction params to Backend B
     const params = new URLSearchParams({
       tmdbId,

@@ -4,6 +4,7 @@ import { validateBackendToken } from "@/lib/validate-token";
 
 import { FIELD_MAP } from "@/lib/token";
 import { createClient } from "@supabase/supabase-js";
+import { isValidReferer } from "@/lib/allowed-referers";
 
 let blacklistCache: Set<string> | null = null;
 let blacklistCacheTime = 0;
@@ -442,25 +443,33 @@ export async function GET(req: NextRequest) {
     const f_token = req.nextUrl.searchParams.get(FIELD_MAP.fToken)!;
 
     if (!tmdbId || !mediaType || !title || !year || !ts || !token) {
-      logRequest(404, "missing params");
+      logRequest(400, "missing params");
       return NextResponse.json(
         { success: false, error: "need token" },
-        { status: 404 },
+        { status: 400 },
       );
     }
 
     if (Date.now() - ts > 120000) {
-      logRequest(403, "token expired");
+      logRequest(401, "token expired");
       return NextResponse.json(
         { success: false, error: "Invalid token" },
-        { status: 403 },
+        { status: 401 },
       );
     }
 
     if (!validateBackendToken(tmdbId, f_token, ts, token)) {
-      logRequest(403, "invalid token");
+      logRequest(401, "invalid token");
       return NextResponse.json(
         { success: false, error: "Invalid token" },
+        { status: 401 },
+      );
+    }
+    const referer = req.headers.get("referer") || "";
+    if (!isValidReferer(referer)) {
+      logRequest(403, "invalid referrer");
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
         { status: 403 },
       );
     }

@@ -314,25 +314,33 @@ export async function GET(req: NextRequest) {
     const f_token = req.nextUrl.searchParams.get(FIELD_MAP.fToken)!;
 
     if (!id || !media_type || !ts || !token) {
-      logRequest(404, "missing token");
+      logRequest(400, "missing token");
       return NextResponse.json(
         { success: false, error: "need token" },
-        { status: 404 },
+        { status: 400 },
       );
     }
 
     if (Date.now() - Number(ts) > 120000) {
-      logRequest(403, "expired token");
+      logRequest(401, "expired token");
       return NextResponse.json(
         { success: false, error: "Invalid token" },
-        { status: 403 },
+        { status: 401 },
       );
     }
 
     if (!validateBackendToken(id, f_token, ts, token)) {
-      logRequest(403, "invalid token");
+      logRequest(401, "invalid token");
       return NextResponse.json(
         { success: false, error: "Invalid token" },
+        { status: 401 },
+      );
+    }
+    const referer = req.headers.get("referer") || "";
+    if (!isValidReferer(referer)) {
+      logRequest(403, "invalid referrer");
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
         { status: 403 },
       );
     }

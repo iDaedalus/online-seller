@@ -190,6 +190,7 @@ export default function Player() {
     !isLoading && !(!isWhitelisted && isSandboxed),
   );
   const isRateLimited = metadataError?.response?.status === 429;
+  const isForbidden = metadataError?.response?.status === 403;
   const imdbId = metadata?.imdb_id || null;
   const status = metadata?.status || "";
   const backdropArray = metadata?.backdrop_paths || [];
@@ -235,6 +236,7 @@ export default function Player() {
     dubType: dub || dubLang ? (dub ? type : dubType) : "",
   });
   const isSourceRateLimited = sourceError?.response?.status === 429;
+  const isSourceForbidden = sourceError?.response?.status === 403;
   const { data: subtitles = [], isLoading: subtitlesLoading } = useSubtitle({
     tmdbId,
     media_type,
@@ -355,8 +357,30 @@ export default function Player() {
     };
   }, [serverIndex]);
 
+  // useEffect(() => {
+  //   if (isSourceRateLimited) return;
+  //   if (isSourceError || source?.links.length === 0) {
+  //     queryClient.removeQueries({
+  //       queryKey: [
+  //         "get-source",
+  //         tmdbId,
+  //         media_type,
+  //         season,
+  //         episode,
+  //         imdbId,
+  //         fetchServer.server,
+  //         title,
+  //         year,
+  //       ],
+  //     });
+  //     handleServerFail();
+  //   }
+  // }, [source?.links, isSourceError, isSourceRateLimited]);
+
+  // default dub effect
+
   useEffect(() => {
-    if (isSourceRateLimited) return;
+    if (isSourceRateLimited || isSourceForbidden) return;
     if (isSourceError || source?.links.length === 0) {
       queryClient.removeQueries({
         queryKey: [
@@ -373,9 +397,7 @@ export default function Player() {
       });
       handleServerFail();
     }
-  }, [source?.links, isSourceError, isSourceRateLimited]);
-
-  // default dub effect
+  }, [source?.links, isSourceError, isSourceRateLimited, isSourceForbidden]);
   useEffect(() => {
     if (dubLangApplied.current) return; // skip if dubLang was applied or user picked
     if (dubLang) return;
@@ -599,12 +621,24 @@ export default function Player() {
       },
     },
   );
+  // useEffect(() => {
+  //   if (!isRateLimited && !isSourceRateLimited) return;
+  //   if (cooldown > 0) return; // Don't restart if already counting down
+
+  //   setCooldown(10);
+  // }, [isRateLimited, isSourceRateLimited]);
   useEffect(() => {
-    if (!isRateLimited && !isSourceRateLimited) return;
-    if (cooldown > 0) return; // Don't restart if already counting down
+    if (
+      !isRateLimited &&
+      !isSourceRateLimited &&
+      !isForbidden &&
+      !isSourceForbidden
+    )
+      return;
+    if (cooldown > 0) return;
 
     setCooldown(10);
-  }, [isRateLimited, isSourceRateLimited]);
+  }, [isRateLimited, isSourceRateLimited, isForbidden, isSourceForbidden]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -616,13 +650,24 @@ export default function Player() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
+  // const handleTryAgain = () => {
+  //   if (cooldown > 0) return;
+  //   setCooldown(10);
+  //   if (isRateLimited) {
+  //     refetchTmdb();
+  //   }
+  //   if (isSourceRateLimited) {
+  //     refetchSource();
+  //   }
+  // };
+
   const handleTryAgain = () => {
     if (cooldown > 0) return;
     setCooldown(10);
-    if (isRateLimited) {
+    if (isRateLimited || isForbidden) {
       refetchTmdb();
     }
-    if (isSourceRateLimited) {
+    if (isSourceRateLimited || isSourceForbidden) {
       refetchSource();
     }
   };
@@ -729,6 +774,46 @@ export default function Player() {
             <p className="text-muted-foreground lg:text-lg text-sm font-medium landscape:text-xs max-w-xl mt-3">
               You've made too many requests too quickly. Please wait a few
               seconds, then try again.
+            </p>
+          </div>
+          <Button
+            variant={cooldown ? "outline" : "destructive"}
+            className="mt-6"
+            onClick={handleTryAgain}
+            disabled={cooldown > 0}
+          >
+            <RotateCw className={cn(cooldown > 0 && "animate-spin")} />{" "}
+            {cooldown > 0 ? `Try Again (${cooldown}s)` : "Try Again"}
+          </Button>
+        </div>
+
+        <SocialLinks />
+      </div>
+    );
+  }
+  if (isForbidden || isSourceForbidden) {
+    return (
+      <div
+        className={cn(
+          " h-screen flex flex-col justify-center items-center gap-6 bg-background relative overflow-hidden",
+        )}
+      >
+        <div className="absolute w-64 h-64 rounded-full bg-blue-600/10 blur-3xl pointer-events-none animate-pulse" />
+        <div className="relative z-10 text-center px-4">
+          <div className="space-y-2">
+            <div>
+              <span className="font-bold lg:text-xl md:text-lg text-base landscape:text-sm">
+                ༼;´༎ຶ ۝ ༎ຶ༽
+              </span>
+            </div>
+
+            <p className="lg:text-2xl md:text-xl text-lg landscape:text-base -tracking-[0.04em] font-semibold mt-6 landscape:mt-1">
+              Access blocked
+            </p>
+
+            <p className="text-muted-foreground lg:text-lg text-sm font-medium landscape:text-xs max-w-xl mt-3">
+              You&apos;ve been blocked due to suspected malicious activity. If
+              you believe this was a mistake, join our Discord and appeal.
             </p>
           </div>
           <Button
