@@ -194,11 +194,7 @@ export async function GET(req: NextRequest) {
     const episode = req.nextUrl.searchParams.get(FIELD_MAP.episode);
     const extra = mediaType === "tv" ? `/${season}/${episode}` : "";
 
-    const ip =
-      req.headers.get("cf-connecting-ip") ||
-      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
+    const ip = req.headers.get("cf-connecting-ip") ?? "unknown";
 
     console.log(
       `[SENTINEL] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | ts: ${new Date().toISOString()} | IP: ${ip}`,

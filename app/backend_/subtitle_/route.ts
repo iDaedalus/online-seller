@@ -5,18 +5,6 @@ import { isValidReferer } from "@/lib/allowed-referers";
 import { FIELD_MAP } from "@/lib/token";
 
 export async function GET(req: NextRequest) {
-  const logRequest = (status: number, reason: string) => {
-    const tmdbId = req.nextUrl.searchParams.get(FIELD_MAP.id);
-    const mediaType = req.nextUrl.searchParams.get("b");
-    const season = req.nextUrl.searchParams.get(FIELD_MAP.season);
-    const episode = req.nextUrl.searchParams.get(FIELD_MAP.episode);
-    const extra = mediaType === "tv" ? `/${season}/${episode}` : "";
-
-    console.log(
-      `[ICARUS] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason}`,
-    );
-  };
-
   try {
     const tmdbId = req.nextUrl.searchParams.get(FIELD_MAP.id);
     const mediaType = req.nextUrl.searchParams.get("b");
@@ -29,7 +17,6 @@ export async function GET(req: NextRequest) {
     const f_token = req.nextUrl.searchParams.get(FIELD_MAP.fToken)!;
 
     if (!tmdbId || !mediaType || !title || !date || !ts || !token) {
-      logRequest(404, "missing params");
       return NextResponse.json(
         { success: false, error: "need token" },
         { status: 404 },
@@ -37,7 +24,6 @@ export async function GET(req: NextRequest) {
     }
 
     if (Date.now() - ts > 30000) {
-      logRequest(403, "token expired");
       return NextResponse.json(
         { success: false, error: "Invalid token" },
         { status: 403 },
@@ -45,7 +31,6 @@ export async function GET(req: NextRequest) {
     }
 
     if (!validateBackendToken(tmdbId, f_token, ts, token)) {
-      logRequest(403, "invalid token");
       return NextResponse.json(
         { success: false, error: "Invalid token" },
         { status: 403 },
@@ -54,7 +39,6 @@ export async function GET(req: NextRequest) {
 
     const referer = req.headers.get("referer") || "";
     if (!isValidReferer(referer)) {
-      logRequest(403, "invalid referrer");
       return NextResponse.json(
         { success: false, error: "Forbidden" },
         { status: 403 },
@@ -79,17 +63,14 @@ export async function GET(req: NextRequest) {
     const data = await res.json();
 
     if (!data.success) {
-      logRequest(data.status || 500, data.error || "extraction failed");
       return NextResponse.json(
         { success: false, error: data.error || "extraction failed" },
         { status: data.status || 500 },
       );
     }
 
-    logRequest(200, "ICARUS OK!!!!!");
     return NextResponse.json(data);
   } catch (err: any) {
-    logRequest(500, `exception: ${err?.message}`);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 },

@@ -770,16 +770,16 @@ async function fetchSubjectQualities(
   const first = await gatewayGetResource(subject.subjectId, baseQuery);
   allItems.push(...(first?.data?.list ?? []));
 
-  for (const resolution of ["360", "480", "720", "1080"]) {
-    const res = await gatewayGetResource(subject.subjectId, {
-      ...baseQuery,
-      resolution,
-    });
+  // for (const resolution of ["360", "480", "720", "1080"]) {
+  //   const res = await gatewayGetResource(subject.subjectId, {
+  //     ...baseQuery,
+  //     resolution,
+  //   });
 
-    if (res?.code === 0) {
-      allItems.push(...(res?.data?.list ?? []));
-    }
-  }
+  //   if (res?.code === 0) {
+  //     allItems.push(...(res?.data?.list ?? []));
+  //   }
+  // }
 
   return extractQualities(allItems);
 }
