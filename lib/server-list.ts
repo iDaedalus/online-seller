@@ -16,13 +16,13 @@ export const initialServers: ServerTypes[] = [
 
   {
     name: "Orion I",
-    server: "orion__",
+    server: "or1on",
     status: "queue",
     desc: "Built-In Subtitle - English",
   },
   {
     name: "Icarus II",
-    server: "icarus_",
+    server: "icaruz",
     status: "queue",
     desc: "Download Support",
   },
@@ -34,7 +34,7 @@ export const initialServers: ServerTypes[] = [
   },
   {
     name: "Resshin IV",
-    server: "resshin__",
+    server: "ressh1n",
     status: "queue",
     desc: "Download & Multi Audio Support",
   },

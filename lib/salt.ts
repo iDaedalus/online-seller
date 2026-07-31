@@ -1,3 +1,3 @@
-//lib/salt.ts
+// lib/salt.ts
 
-export const SALT = "6747476643324345363";
+export const SALT = "a7f31c9e4d628b50f1e83a76d942bc15";
