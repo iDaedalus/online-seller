@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       "unknown";
 
     console.log(
-      `[ICARUS] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | IP: ${ip}`,
+      `[ICARUS] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | ts: ${new Date().toISOString()} | IP: ${ip}`,
     );
   };
 

@@ -298,7 +298,7 @@ export async function GET(req: NextRequest) {
       "unknown";
 
     console.log(
-      `[ATHENA] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | IP: ${ip}`,
+      `[ATHENA] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | ts: ${new Date().toISOString()} | IP: ${ip}`,
     );
   };
 

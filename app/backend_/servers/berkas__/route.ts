@@ -276,7 +276,7 @@ export async function GET(req: NextRequest) {
       "unknown";
 
     console.log(
-      `[BERKAS] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | IP: ${ip}`,
+      `[BERKAS]  ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | ts: ${new Date().toISOString()} | IP: ${ip}`,
     );
   };
 
