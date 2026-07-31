@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const ip = req.headers.get("cf-connecting-ip") ?? "unknown";
 
     console.log(
-      `[ICARUS] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | ts: ${new Date().toISOString()} | IP: ${ip}`,
+      `[ICARUZ] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | ts: ${new Date().toISOString()} | IP: ${ip}`,
     );
   };
 
