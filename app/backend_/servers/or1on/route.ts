@@ -374,6 +374,11 @@ const HOLLY_WORKERS = [
   "https://patient-smoke-9421.wubbalubbadubdub18.workers.dev/",
   "https://empty-meadow-7845.wubbalubbadubdub19.workers.dev/",
   "https://white-rice-8ff0.wubbalubbadubdub20.workers.dev/",
+
+  "https://aged-surf-de3a.whattheheal1.workers.dev/",
+  "https://aged-dawn-0319.whattheheal2.workers.dev/",
+  "https://broken-meadow-04ae.whattheheal3.workers.dev/",
+  "https://shy-dew-1020.whattheheal4.workers.dev/",
 ];
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -420,7 +425,7 @@ export async function GET(req: NextRequest) {
     const episode = req.nextUrl.searchParams.get(FIELD_MAP.episode);
     const extra = mediaType === "tv" ? `/${season}/${episode}` : "";
 
-const ip = req.headers.get("cf-connecting-ip") ?? "unknown";
+    const ip = req.headers.get("cf-connecting-ip") ?? "unknown";
 
     console.log(
       `[ORION] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason} | ts: ${new Date().toISOString()} | IP: ${ip}`,
