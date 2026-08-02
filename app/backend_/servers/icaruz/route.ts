@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
     });
 
     const res = await fetch(
-      `https://online-thin-prox-production.up.railway.app/backend_/servers/icarus__?${params.toString()}`,
+      `https://online-seller-tau.vercel.app/backend_/servers/icarus__?${params.toString()}`,
       { method: "GET" },
     );
 

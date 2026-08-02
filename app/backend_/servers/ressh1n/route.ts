@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
       dubType: String(dubType),
     });
     const res = await fetch(
-      `https://online-thin-prox-production.up.railway.app/backend_/servers/resshin_?${params.toString()}`,
+      `https://online-seller-tau.vercel.app/backend_/servers/resshin_?${params.toString()}`,
       {
         method: "GET",
         // headers: {

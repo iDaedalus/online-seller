@@ -3,6 +3,8 @@ git pull
 npm install
 npm run build
 pm2 restart player
+🟢 github save
+git config --global credential.helper
 🟢 Changed .env.local
 npm run build
 pm2 restart player --update-env
