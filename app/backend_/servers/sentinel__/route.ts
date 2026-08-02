@@ -6,8 +6,8 @@ import { createClient } from "@supabase/supabase-js";
 import { isValidReferer } from "@/lib/allowed-referers";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL_ONE!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY_ONE!,
+  process.env.SUPABASE_URL_SENTINEL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY_SENTINEL!,
 );
 const ONETOUCH_API = "https://api3.devcorp.me/web/vod";
 const ENC_DEC_API = "https://enc-dec.app/api";

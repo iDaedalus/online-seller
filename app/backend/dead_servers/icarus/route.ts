@@ -11,10 +11,6 @@ const supabase = createClient(
   process.env.SUPABASE_URL_MOVIEBOX!,
   process.env.SUPABASE_SERVICE_ROLE_KEY_MOVIEBOX!,
 );
-const supabaseSubtitle = createClient(
-  process.env.SUPABASE_URL_MOVIEBOX_SUBTITLE!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY_MOVIEBOX_SUBTITLE!,
-);
 
 let blacklistCache: Set<string> | null = null;
 let blacklistCacheTime = 0;
@@ -482,20 +478,6 @@ https://sflix.film/spa/videoPlayPage/movies/${detailPath}?id=${subjectId}&type=/
         display: c.lanName,
         file: c.url,
       }));
-      if (subtitles.length > 0) {
-        await supabaseSubtitle.from("moviebox_subtitles_cache").upsert(
-          {
-            tmdb_id: tmdbId,
-            media_type: mediaType,
-            season: season ?? "",
-            episode: episode ?? "",
-            subtitles,
-          },
-          {
-            onConflict: "tmdb_id,media_type,season,episode",
-          },
-        );
-      }
     } //Je@09185134757
 
     if (!cachedDownloads) {

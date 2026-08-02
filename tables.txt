@@ -1,0 +1,181 @@
+TMDB
+
+create table tmdb_details_cache (
+  id bigint generated always as identity primary key,
+  tmdb_id integer not null,
+  media_type text not null,
+  language text not null,
+  data jsonb not null,
+  refreshed_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '7 days'),
+  constraint tmdb_details_cache_unique unique (tmdb_id, media_type, language)
+);
+
+create table tmdb_season_cache (
+  id bigint generated always as identity primary key,
+  tmdb_id integer not null,
+  season integer not null,
+  language text not null,
+  data jsonb not null,
+  refreshed_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '7 days'),
+  constraint tmdb_season_cache_unique unique (tmdb_id, season, language)
+);
+
+---------------------------------------------------------------------------------------
+
+SEGMENTS
+create table segments_cache (
+  imdb_id text not null,
+  season int not null,
+  episode int not null,
+  data jsonb not null,
+  tmdb_id text,
+  created_at timestamptz default now(),
+  primary key (imdb_id, season, episode)
+);
+
+---------------------------------------------------------------------------------------
+
+BERKAS
+create table berkas_cache (
+  id uuid primary key default gen_random_uuid(),
+  tmdb_id text not null,
+  media_type text not null,
+  season text not null default '',
+  episode text not null default '',
+  stream_urls jsonb not null,
+  subtitles jsonb not null default '[]',
+  refreshed_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '3 hours'),
+  unique (tmdb_id, media_type, season, episode)
+);
+
+create index idx_berkas_cache_lookup
+  on berkas_cache (tmdb_id, media_type, season, episode, expires_at);
+
+---------------------------------------------------------------------------------------
+
+HOLLY
+create table holly_movie_cache (
+    id          bigserial primary key,
+    tmdb_id     integer not null,
+    media_type  text not null,
+    season      text not null default '',
+    episode     text not null default '',
+    embeds      jsonb not null default '[]'::jsonb,
+    sources     jsonb not null default '[]'::jsonb,
+    created_at  timestamptz default now(),
+    constraint holly_movie_cache_unique
+        unique (tmdb_id, media_type, season, episode)
+);
+
+create index idx_holly_movie_cache_created_at
+on holly_movie_cache (created_at desc);
+
+---------------------------------------------------------------------------------------
+
+PROXY_BLACKLIST
+create table proxy_blacklist (
+  proxy text primary key,
+  reason text not null default '429',
+  blacklisted_at timestamptz not null default now(),
+  expires_at timestamptz not null
+);
+
+---------------------------------------------------------------------------------------
+
+SUSPICIOUS IPS
+create table suspicious_ips (
+  ip text primary key,
+  hits bigint not null default 1,
+  created_at timestamptz default now(),
+  last_seen timestamptz default now(),
+
+  asn text,
+  country text,
+  method text,
+  path text,
+  user_agent text,
+  referer text
+);
+
+---------------------------------------------------------------------------------------
+
+SENTINEL
+create table onetouch_cache (
+  id uuid primary key default gen_random_uuid(),
+  tmdb_id text not null,
+  media_type text not null,
+  season text not null default '',
+  episode text not null default '',
+  links jsonb not null,
+  subtitles jsonb not null default '[]',
+  refreshed_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '45 minutes'),
+  unique (tmdb_id, media_type, season, episode)
+);
+
+create index idx_onetouch_cache_lookup
+  on onetouch_cache (
+    tmdb_id,
+    media_type,
+    season,
+    episode,
+    expires_at
+  );
+
+---------------------------------------------------------------------------------------
+
+  ATHENA
+create table screenify_source (
+  id uuid primary key default gen_random_uuid(),
+  imdb_id text not null,
+  tmdb_id text not null,
+  media_type text not null,
+  season text not null,
+  episode text not null,
+  src_path text not null,
+  created_at timestamptz not null default now(),
+  constraint screenify_source_unique
+    unique (imdb_id, media_type, season, episode)
+);
+create index screenify_source_imdb_media_season_episode_idx
+on screenify_source (imdb_id, media_type, season, episode);
+
+---------------------------------------------------------------------------------------
+
+MOVIEBOX APP/WEB
+create table moviebox_cache (
+  id uuid primary key default gen_random_uuid(),
+  tmdb_id text not null,
+  title text not null,
+  release_date text not null,
+  media_type text not null,
+  dubs jsonb not null default '[]'::jsonb,
+  manual boolean not null default false,
+  created_at timestamptz default now(),
+  unique(tmdb_id, media_type)
+);
+create index idx_moviebox_cache_tmdb on moviebox_cache(tmdb_id, media_type);
+
+
+create table moviebox_downloads_cache (
+  id uuid primary key default gen_random_uuid(),
+  play_count integer not null default 0,
+  error_count integer not null default 0,
+  tmdb_id text not null,
+  media_type text not null,
+  season text not null default '',
+  episode text not null default '',
+  dub text not null default 'orig',
+  type integer not null default 0,
+  downloads jsonb not null default '[]'::jsonb,
+  created_at timestamptz default now(),
+  refreshed_at timestamptz default now(),
+  expires_at timestamptz default (now() + interval '45 hours'),
+  unique(tmdb_id, media_type, season, episode, dub, type)
+);
+
+---------------------------------------------------------------------------------------
+

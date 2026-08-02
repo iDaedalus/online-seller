@@ -4,8 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import { encryptUrl } from "@/lib/encryptor";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL_MOVIEBOX_BCDNXW2!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY_MOVIEBOX_BCDNXW2!,
+  process.env.SUPABASE_URL_MOVIEBOX_WEB!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY_MOVIEBOX_WEB!,
 );
 
 let blacklistCache: Set<string> | null = null;
