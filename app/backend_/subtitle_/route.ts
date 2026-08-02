@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
     });
 
     const res = await fetch(
-      `https://online-seller-two.vercel.app/backend_/subtitle?${params.toString()}`,
+      `https://online-thin-prox-production.up.railway.app/backend_/subtitle?${params.toString()}`,
       { method: "GET" },
     );
 
