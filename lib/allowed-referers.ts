@@ -7,7 +7,7 @@ const ALLOWED_REFERERS = [
   //BACKUP
   "https://backup-zxcstream-xyz.up.railway.app/",
   "https://backup-zxcprime-xyz.up.railway.app/",
-  "https://online-seller-tau.vercel.app//",
+  "https://online-seller-tau.vercel.app/",
 ];
 
 export const ALLOWED_ORIGINS = [

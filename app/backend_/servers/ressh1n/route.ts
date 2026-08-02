@@ -1,8 +1,14 @@
-//RESSHIN SERVER (thin proxy)
+// RESSHIN SERVER (thin proxy)
 import { NextRequest, NextResponse } from "next/server";
 import { validateBackendToken } from "@/lib/validate-token";
 import { FIELD_MAP } from "@/lib/token";
 import { isValidReferer } from "@/lib/allowed-referers";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL_MOVIEBOX_APP!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY_MOVIEBOX_APP!,
+);
 
 export async function GET(req: NextRequest) {
   const logRequest = (status: number, reason: string) => {
@@ -64,7 +70,120 @@ export async function GET(req: NextRequest) {
         { status: 403 },
       );
     }
-    // Forward only the extraction params to Backend B
+
+    // -------- Top-level Supabase cache checks --------
+    const { data: cachedDubsRow } = await supabase
+      .from("moviebox_cache")
+      .select("dubs")
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType)
+      .maybeSingle();
+
+    if (cachedDubsRow) {
+      const dubs = cachedDubsRow.dubs ?? [];
+
+      const original =
+        dubs.find((d: any) => d.original) ??
+        dubs.find((d: any) => d.lanCode === "en") ??
+        dubs[0];
+
+      if (original) {
+        let activeDub = original;
+
+        if (dubCode) {
+          const found = dubs.find(
+            (d: any) =>
+              d.lanCode === dubCode && Number(d.type ?? 0) === dubType,
+          );
+          if (found) activeDub = found;
+        }
+
+        const activeDubLang: string = activeDub?.lanCode ?? "orig";
+        const activeDubType: number = activeDub?.type ?? 0;
+
+        const dlQuery = supabase
+          .from("moviebox_downloads_cache")
+          .select("downloads")
+          .eq("tmdb_id", tmdbId)
+          .eq("media_type", mediaType)
+          .eq("dub", activeDubLang)
+          .eq("type", activeDubType)
+          .gt("expires_at", new Date().toISOString());
+
+        if (season) dlQuery.eq("season", season);
+        else dlQuery.eq("season", "");
+
+        if (episode) dlQuery.eq("episode", episode);
+        else dlQuery.eq("episode", "");
+
+        const { data: cachedDl } = await dlQuery.maybeSingle();
+
+        if (cachedDl) {
+          // Full cache hit — serve without calling backend
+          const sortedDownloads = cachedDl.downloads ?? [];
+
+          if (sortedDownloads.length) {
+            const PREFERRED_ORDER = ["720", "480", "1080", "360"];
+
+            const links = PREFERRED_ORDER.map((res) =>
+              sortedDownloads.find(
+                (q: any) => String(q.resolution).replace(/p$/i, "") === res,
+              ),
+            )
+              .filter(Boolean)
+              .map((q: any) => ({
+                resolution: q.resolution,
+                format: q.format,
+                size: q.size,
+                type: (q.url ?? "").includes(".m3u8")
+                  ? ("hls" as const)
+                  : ("mp4" as const),
+                link: `https://proxy.zxcstream.xyz/proxy?url=${encodeURIComponent(q.url)}`,
+              }));
+
+            if (links.length) {
+              const active =
+                dubs.find((d: any) => d.lanCode === activeDubLang) ?? dubs[0];
+
+              const data = {
+                success: true as const,
+                links,
+                subtitles: [] as any[],
+                dubs: dubs.map((d: any) => ({
+                  lang: d.lanCode,
+                  type: d.type,
+                  name:
+                    d.type === 1
+                      ? d.lanName
+                          .replace(/\b(dub|audio)\b/gi, "")
+                          .trim()
+                          .replace(/sub$/i, "")
+                          .trim() + " (Subtitle)"
+                      : d.lanName.replace(/\b(dub|audio|sub)\b/gi, "").trim(),
+                  original: d.original,
+                })),
+                meow: true,
+                meowmeow: true,
+                active: {
+                  langCode: active?.lanCode ?? "",
+                  langType: active?.type ?? 0,
+                  langName:
+                    active?.lanName?.replace(/\b(dub|audio)\b/gi, "").trim() ??
+                    "",
+                },
+                top: true,
+                fallback: dubCode ? dubCode !== active?.lanCode : false,
+              };
+
+              logRequest(200, "OK (cache hit)");
+              return NextResponse.json(data);
+            }
+          }
+        }
+      }
+    }
+
+    // -------- Cache miss → call backend extractor --------
     const params = new URLSearchParams({
       tmdbId,
       mediaType,
@@ -75,15 +194,10 @@ export async function GET(req: NextRequest) {
       ...(dubCode && { dubCode }),
       dubType: String(dubType),
     });
+
     const res = await fetch(
       `https://online-seller-tau.vercel.app/backend_/servers/resshin_?${params.toString()}`,
-      {
-        method: "GET",
-        // headers: {
-        //   // optional: add an internal secret if you want
-        //   // "x-internal-key": process.env.INTERNAL_KEY || "",
-        // },
-      },
+      { method: "GET" },
     );
 
     const data = await res.json();

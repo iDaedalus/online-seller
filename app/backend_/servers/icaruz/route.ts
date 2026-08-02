@@ -3,6 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateBackendToken } from "@/lib/validate-token";
 import { isValidReferer } from "@/lib/allowed-referers";
 import { FIELD_MAP } from "@/lib/token";
+import { createClient } from "@supabase/supabase-js";
+import { encryptUrl } from "@/lib/encryptor";
+import { getWorkingProxy } from "@/lib/icarus-extractor";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL_MOVIEBOX_WEB!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY_MOVIEBOX_WEB!,
+);
 
 export async function GET(req: NextRequest) {
   const logRequest = (status: number, reason: string) => {
@@ -64,7 +72,135 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Forward only the extraction params to Backend B
+    // -------- Top-level Supabase cache checks --------
+    const { data: cachedDubsRow } = await supabase
+      .from("moviebox_cache")
+      .select("dubs")
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType)
+      .maybeSingle();
+
+    if (cachedDubsRow) {
+      const dubs = cachedDubsRow.dubs ?? [];
+
+      const original =
+        dubs.find((d: any) => d.original === true) ??
+        dubs.find((d: any) => d.lanCode === "en") ??
+        dubs[0];
+
+      if (original) {
+        let activeDubType: number = original.type ?? 0;
+        let activeDubLang: string = original.lanCode ?? "orig";
+
+        if (dubCode) {
+          const dubEntry = dubs.find(
+            (d: any) =>
+              d.lanCode === dubCode && d.type === Number(dubType ?? "0"),
+          );
+          if (dubEntry) {
+            activeDubType = dubEntry.type ?? 0;
+            activeDubLang = dubEntry.lanCode;
+          }
+        }
+
+        const dlQuery = supabase
+          .from("moviebox_downloads_cache")
+          .select("downloads")
+          .eq("tmdb_id", tmdbId)
+          .eq("media_type", mediaType)
+          .eq("dub", activeDubLang)
+          .eq("type", activeDubType)
+          .gt("expires_at", new Date().toISOString());
+
+        if (season) dlQuery.eq("season", season);
+        else dlQuery.eq("season", "");
+
+        if (episode) dlQuery.eq("episode", episode);
+        else dlQuery.eq("episode", "");
+
+        const { data: cachedDl } = await dlQuery.maybeSingle();
+
+        if (cachedDl) {
+          // Full cache hit — serve without calling backend
+          let sortedDownloads = cachedDl.downloads ?? [];
+
+          const proxies = ["https://little-frog-dbca.icarus049.workers.dev/"];
+
+          const workingProxy = await getWorkingProxy(proxies);
+          if (!workingProxy) {
+            logRequest(502, "No working proxy available");
+            return NextResponse.json(
+              { success: false, error: "No working proxy available" },
+              { status: 502 },
+            );
+          }
+
+          sortedDownloads = sortedDownloads.filter(
+            (d: any) =>
+              d?.url &&
+              !d.url.includes("bcdnxw.") &&
+              !d.url.includes("bcdnxw/"),
+          );
+
+          if (!sortedDownloads.length) {
+            // treat as miss and fall through to backend
+          } else {
+            const links = await Promise.all(
+              sortedDownloads.map(async (d: any) => {
+                const encrypted = await encryptUrl(d.url);
+                return {
+                  resolution: d.resolutions,
+                  format: d.format,
+                  size: d.size,
+                  type: d.url.includes(".m3u8")
+                    ? ("hls" as const)
+                    : ("mp4" as const),
+                  link: `${workingProxy}?data=${encodeURIComponent(encrypted)}`,
+                };
+              }),
+            );
+
+            const activeDub =
+              dubs.find((d: any) => d.lanCode === activeDubLang) ?? dubs[0];
+
+            const data = {
+              success: true as const,
+              links,
+              subtitles: [] as any[],
+              dubs: dubs.map((d: any) => ({
+                lang: d.lanCode,
+                type: d.type,
+                name:
+                  d.type === 1
+                    ? d.lanName
+                        .replace(/\b(dub|audio)\b/gi, "")
+                        .trim()
+                        .replace(/sub$/i, "")
+                        .trim() + " (Subtitle)"
+                    : d.lanName.replace(/\b(dub|audio|sub)\b/gi, "").trim(),
+                original: d.original,
+              })),
+              meow: true,
+              meowmeow: true,
+              active: {
+                langCode: activeDub?.lanCode ?? "",
+                langType: activeDub?.type ?? 0,
+                langName:
+                  activeDub?.lanName?.replace(/\b(dub|audio)\b/gi, "").trim() ??
+                  "",
+              },
+              top: true,
+              fallback: dubCode ? dubCode !== activeDub?.lanCode : false,
+            };
+
+            logRequest(200, "OK (cache hit)");
+            return NextResponse.json(data);
+          }
+        }
+      }
+    }
+
+    // -------- Cache miss → call backend extractor --------
     const params = new URLSearchParams({
       tmdbId,
       mediaType,
@@ -77,7 +213,7 @@ export async function GET(req: NextRequest) {
     });
 
     const res = await fetch(
-      `https://online-seller-tau.vercel.app/backend_/servers/icarus__?${params.toString()}`,
+      `https://online-seller-tau.vercel.app/servers/icarus__?${params.toString()}`,
       { method: "GET" },
     );
 

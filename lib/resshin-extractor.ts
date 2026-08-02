@@ -325,6 +325,7 @@ export type ResshinExtractResult =
         langType: number;
         langName: string;
       };
+      top: boolean;
       fallback: boolean;
     }
   | {
@@ -599,6 +600,7 @@ export async function extractResshin(
       langType: active?.type ?? 0,
       langName: active?.lanName?.replace(/\b(dub|audio)\b/gi, "").trim() ?? "",
     },
+    top: false,
     fallback: dubCode ? dubCode !== active?.lanCode : false,
   };
 }
