@@ -2,8 +2,8 @@ import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL_MOVIEBOX_BCDNXW2!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY_MOVIEBOX_BCDNXW2!,
+  process.env.SUPABASE_URL_MOVIEBOX_WEB!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY_MOVIEBOX_WEB!,
 );
 
 // ==================== TYPES ====================
