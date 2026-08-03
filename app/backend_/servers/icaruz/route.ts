@@ -133,13 +133,6 @@ export async function GET(req: NextRequest) {
             );
           }
 
-          sortedDownloads = sortedDownloads.filter(
-            (d: any) =>
-              d?.url &&
-              !d.url.includes("bcdnxw.") &&
-              !d.url.includes("bcdnxw/"),
-          );
-
           if (!sortedDownloads.length) {
             // treat as miss and fall through to backend
           } else {
@@ -211,7 +204,7 @@ export async function GET(req: NextRequest) {
     });
 
     const res = await fetch(
-      `https://online-seller-tau.vercel.app/backend_/servers/icarus__?${params.toString()}`,
+      `https://school-project-production-9d70.up.railway.app/icarus?${params.toString()}`,
       { method: "GET" },
     );
 

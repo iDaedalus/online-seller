@@ -20,33 +20,33 @@ export const initialServers: ServerTypes[] = [
     status: "queue",
     desc: "Built-In Subtitle - English",
   },
-  // {
-  //   name: "Icarus II",
-  //   server: "icaruz",
-  //   status: "queue",
-  //   desc: "Download Support",
-  // },
   {
-    name: "Berkas II",
+    name: "Icarus II",
+    server: "icaruz",
+    status: "queue",
+    desc: "Download Support",
+  },
+  {
+    name: "Berkas III",
     server: "berkas__",
     status: "queue",
     desc: "4K Support",
   },
   {
-    name: "Resshin III",
+    name: "Resshin IV",
     server: "ressh1n",
     status: "queue",
     desc: "Download & Multi Audio Support",
   },
   {
-    name: "Athena IV",
+    name: "Athena V",
     server: "athena__",
     status: "queue",
     desc: "Main Server & Multi Audio Support",
   },
 
   {
-    name: "Sentinel V",
+    name: "Sentinel VI",
     server: "sentinel__",
     status: "queue",
     desc: "K-Dramas, C-Dramas & Asian movies",
