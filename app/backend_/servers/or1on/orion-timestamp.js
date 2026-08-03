@@ -2,8 +2,8 @@
  * Combined Worker
  *
  * GET /scrape?slug=frankenstein-2025
- * GET /resolve?embed_url=https://...&headers={...}
- * GET /proxy?url=https://...&headers={...}
+ * GET /resolve?embed_url=https://...&h=...
+ * GET /proxy?data=...          ← single encrypted payload: { exp, url, headers }
  */
 
 const HOLLY_BASE = "https://hollymoviehd.cc";
@@ -51,6 +51,58 @@ function getCorsOrigin(req) {
   return null; // browser request from unknown origin, block
 }
 
+// ─── Crypto helpers ──────────────────────────────────────────────────────────
+
+function toBase64Url(bytes) {
+  let str = "";
+  for (const b of bytes) str += String.fromCharCode(b);
+  return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function fromBase64Url(str) {
+  str = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (str.length % 4) str += "=";
+  const bin = atob(str);
+  return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+}
+
+async function getCryptoKey(aesKey) {
+  const keyBytes = Uint8Array.from(
+    aesKey.match(/.{2}/g).map((b) => parseInt(b, 16)),
+  );
+  return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
+
+async function encryptUrl(payload, cryptoKey) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    cryptoKey,
+    new TextEncoder().encode(payload),
+  );
+  const out = new Uint8Array(iv.length + encrypted.byteLength);
+  out.set(iv, 0);
+  out.set(new Uint8Array(encrypted), iv.length);
+  return toBase64Url(out);
+}
+
+async function decryptUrl(data, cryptoKey) {
+  const bytes = fromBase64Url(data);
+  const iv = bytes.slice(0, 12);
+  const ciphertext = bytes.slice(12);
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    cryptoKey,
+    ciphertext,
+  );
+  return new TextDecoder().decode(decrypted);
+}
+
+// ─── /resolve still uses the old separate "h" param ──────────────────────────
+
 async function getHeaders(url, cryptoKey) {
   const raw = url.searchParams.get("h");
   if (!raw) return { error: 'Missing "h" param' };
@@ -61,6 +113,8 @@ async function getHeaders(url, cryptoKey) {
     return { error: "Invalid headers token" };
   }
 }
+
+// ─── Handlers ────────────────────────────────────────────────────────────────
 
 async function handleScrape(url) {
   const slug = url.searchParams.get("slug");
@@ -100,6 +154,7 @@ async function handleScrape(url) {
       ...(imdbid ? { imdbid } : {}),
     }).toString(),
   });
+
   if (ajaxRes.status === 429) return json({ error: "Rate limited" }, 429);
   if (!ajaxRes.ok)
     return json({ error: `ajax POST failed: HTTP ${ajaxRes.status}` }, 502);
@@ -189,82 +244,34 @@ async function handleResolve(url, cryptoKey) {
 
   return json({ embed_id: embedId, csrf_token: csrfToken, sources });
 }
-
-function toBase64Url(bytes) {
-  let str = "";
-  for (const b of bytes) str += String.fromCharCode(b);
-
-  return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function fromBase64Url(str) {
-  str = str.replace(/-/g, "+").replace(/_/g, "/");
-
-  while (str.length % 4) str += "=";
-
-  const bin = atob(str);
-
-  return Uint8Array.from(bin, (c) => c.charCodeAt(0));
-}
-
-async function getCryptoKey(aesKey) {
-  const keyBytes = Uint8Array.from(
-    aesKey.match(/.{2}/g).map((b) => parseInt(b, 16)),
-  );
-
-  return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, [
-    "encrypt",
-    "decrypt",
-  ]);
-}
-
-async function encryptUrl(url, cryptoKey) {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    cryptoKey,
-    new TextEncoder().encode(url),
-  );
-
-  const out = new Uint8Array(iv.length + encrypted.byteLength);
-
-  out.set(iv, 0);
-  out.set(new Uint8Array(encrypted), iv.length);
-
-  return toBase64Url(out);
-}
-
-async function decryptUrl(data, cryptoKey) {
-  const bytes = fromBase64Url(data);
-
-  const iv = bytes.slice(0, 12);
-  const ciphertext = bytes.slice(12);
-
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    cryptoKey,
-    ciphertext,
-  );
-
-  return new TextDecoder().decode(decrypted);
-}
-
 async function handleProxy(url, request, cryptoKey) {
   const data = url.searchParams.get("data");
   if (!data) return json({ error: 'Missing "data" param' }, 400);
 
-  let decoded;
+  let payload;
   try {
-    decoded = await decryptUrl(data, cryptoKey);
+    const decoded = await decryptUrl(data, cryptoKey);
+    payload = JSON.parse(decoded);
   } catch {
     return json({ error: "Invalid token" }, 403);
   }
 
-  const { headers, error } = await getHeaders(url, cryptoKey);
-  if (error) return json({ error }, 400);
+  const { exp, url: targetUrl, headers } = payload;
 
-  const res = await fetch(decoded, {
+  // Expiration check
+  if (!exp || Date.now() > exp) {
+    return json({ error: "Token expired" }, 403);
+  }
+
+  if (!targetUrl || typeof targetUrl !== "string") {
+    return json({ error: "Invalid payload: missing url" }, 400);
+  }
+
+  if (!headers || typeof headers !== "object") {
+    return json({ error: "Invalid payload: missing headers" }, 400);
+  }
+
+  const res = await fetch(targetUrl, {
     headers: {
       ...headers,
       ...(request.headers.get("Range")
@@ -272,6 +279,7 @@ async function handleProxy(url, request, cryptoKey) {
         : {}),
     },
   });
+
   if (!res.ok) {
     return new Response(res.body, {
       status: res.status,
@@ -283,29 +291,38 @@ async function handleProxy(url, request, cryptoKey) {
       },
     });
   }
+
   const ct = res.headers.get("content-type") || "application/octet-stream";
   const isPlaylist =
     ct.includes("mpegurl") ||
-    decoded.includes(".m3u8") ||
-    decoded.includes("/pl/") ||
-    decoded.includes("/streamsvr/");
+    targetUrl.includes(".m3u8") ||
+    targetUrl.includes("/pl/") ||
+    targetUrl.includes("/streamsvr/");
 
   if (isPlaylist) {
-    const base = new URL(decoded);
+    const base = new URL(targetUrl);
     const baseDir =
       base.origin +
       base.pathname.substring(0, base.pathname.lastIndexOf("/") + 1);
-    const encryptedH = url.searchParams.get("h");
+
     const lines = await Promise.all(
       (await res.text()).split("\n").map(async (line) => {
         const t = line.trim();
         if (!t || t.startsWith("#")) return line;
+
         let abs = t;
         if (t.startsWith("//")) abs = "https:" + t;
         else if (t.startsWith("/")) abs = base.origin + t;
         else if (!t.startsWith("http")) abs = baseDir + t;
-        const encrypted = await encryptUrl(abs, cryptoKey);
-        return `${url.origin}/proxy?data=${encodeURIComponent(encrypted)}&h=${encodeURIComponent(encryptedH)}`;
+
+        const segmentPayload = JSON.stringify({
+          exp, // reuse the playlist’s exp
+          url: abs,
+          headers,
+        });
+
+        const encrypted = await encryptUrl(segmentPayload, cryptoKey);
+        return `${url.origin}/proxy?data=${encodeURIComponent(encrypted)}`;
       }),
     );
 
@@ -318,6 +335,7 @@ async function handleProxy(url, request, cryptoKey) {
     });
   }
 
+  // Regular media (mp4 / segment)
   return new Response(res.body, {
     status: res.status,
     headers: {
@@ -333,6 +351,7 @@ async function handleProxy(url, request, cryptoKey) {
     },
   });
 }
+// ─── Entry ───────────────────────────────────────────────────────────────────
 
 export default {
   async fetch(request, env) {
@@ -356,15 +375,16 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname;
     const cryptoKey = await getCryptoKey(env.AES_KEY);
+
     if (pathname === "/scrape") return handleScrape(url);
     if (pathname === "/resolve") return handleResolve(url, cryptoKey);
     if (pathname === "/proxy") return handleProxy(url, request, cryptoKey);
 
     return json({
       routes: {
-        "/s25": "Holly scraper",
-        "/rttps://...": "Goodstream resolver",
-        "/p&h=...": "HLS proxy",
+        "/scrape?slug=...": "Holly scraper",
+        "/resolve?embed_url=...&h=...": "Goodstream resolver",
+        "/proxy?data=...": "Media proxy (payload: {exp,url,headers})",
       },
     });
   },

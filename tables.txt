@@ -587,3 +587,6 @@ app.listen({
   host: "127.0.0.1",
   port: 3000,
 });
+
+
+{"idx":0,"id":2,"tmdb_id":1184918,"media_type":"movie","season":"","episode":"","embeds":"[{\"quality\": \"streamsvr\", \"embed_url\": \"https://goodstream.cc/embed/ruIljEuUyY?e=UkRxU3hrL1RnSERVRkhvMGN3QlRPdUJHNHNXZUhwUnR1d3pVU2p0RlZ5eG81anV1VUdsM0tqNmJqTENKM2lkdwE\"}, {\"quality\": \"streamsvr (1080p)\", \"embed_url\": \"https://goodstream.cc/embed/4FKvEa4z98?e=UkRxU3hrL1RnSERVRkhvMGN3QlRPdUJHNHNXZUhwUnR1d3pVU2p0RlZ5eG81anV1VUdsM0tqNmJqTENKM2lkdwE\"}]","sources":"[{\"file\": \"https://goodstream.cc/streamsvr/ruIljEuUyY/1-27?e=UkRxU3hrL1RnSERVRkhvMGN3QlRPdUJHNHNXZUhwUnR1d3pVU2p0RlZ5eG81anV1VUdsM0tqNmJqTENKM2lkdwE\", \"type\": \"hls\", \"label\": \"LS-25\"}, {\"file\": \"https://goodstream.cc/pl/WUmU1cMmqA6Hc61/0-27?e=UkRxU3hrL1RnSERVRkhvMGN3QlRPdUJHNHNXZUhwUnR1d3pVU2p0RlZ5eG81anV1VUdsM0tqNmJqTENKM2lkdwE\", \"type\": \"hls\", \"label\": \"GS-25\"}]","created_at":"2026-07-13 10:05:30.911617+00"}
