@@ -5,7 +5,7 @@ import { isValidReferer } from "@/lib/allowed-referers";
 import { FIELD_MAP } from "@/lib/token";
 import { createClient } from "@supabase/supabase-js";
 import { encryptUrl } from "@/lib/encryptor";
-import { getWorkingProxy } from "@/lib/icarus-extractor";
+import { getWorkingProxy, proxies } from "@/lib/icarus-extractor";
 
 const supabase = createClient(
   process.env.SUPABASE_URL_MOVIEBOX_WEB!,
@@ -123,8 +123,6 @@ export async function GET(req: NextRequest) {
         if (cachedDl) {
           // Full cache hit — serve without calling backend
           let sortedDownloads = cachedDl.downloads ?? [];
-
-          const proxies = ["https://little-frog-dbca.icarus049.workers.dev/"];
 
           const workingProxy = await getWorkingProxy(proxies);
           if (!workingProxy) {
