@@ -99,24 +99,25 @@ const HOLLY_WORKERS = [
   "https://nameless-tooth-8cbb.test64-0d5.workers.dev/",
   "https://spring-darkness-8beb.test61-86c.workers.dev/",
   "https://odd-river-ed9f.test29-be6.workers.dev/",
+  "https://soft-shadow-1443.expired8.workers.dev/",
+  "https://floral-limit-aeb0.expired9.workers.dev/",
+  "https://still-mode-5f32.expired6.workers.dev/",
+  "https://cool-wave-a9c1.expired7.workers.dev/",
+  "https://shrill-smoke-e6eb.test60-598.workers.dev/",
+  "https://twilight-resonance-eb4d.test28-f24.workers.dev/",
+  "https://billowing-rain-7239.test27-15e.workers.dev/",
+  "https://throbbing-dream-bb83.test62-63e.workers.dev/",
+  "https://small-hall-439b.test83-291.workers.dev/",
+  "https://rough-bonus-f4e3.test82-ac2.workers.dev/",
+  "https://quiet-sun-4390.test80-1f4.workers.dev/",
+  "https://curly-sea-0553.test79-29a.workers.dev/",
+  "https://mute-bonus-b2b6.test78-564.workers.dev/",
+  "https://fragrant-silence-a7d1.test77-a68.workers.dev/",
+  "https://weathered-king-9f51.test76-4e9.workers.dev/",
+  "https://delicate-dream-a0ac.test75-da4.workers.dev/",
 ];
 // const HOLLY_WORKERS = [
 
-//   "https://shrill-smoke-e6eb.test60-598.workers.dev/",
-//   "https://twilight-resonance-eb4d.test28-f24.workers.dev/",
-
-//   "https://billowing-rain-7239.test27-15e.workers.dev/",
-//   "https://throbbing-dream-bb83.test62-63e.workers.dev/",
-//   "https://small-hall-439b.test83-291.workers.dev/",
-//   "https://rough-bonus-f4e3.test82-ac2.workers.dev/",
-
-//   "https://quiet-sun-4390.test80-1f4.workers.dev/",
-//   "https://curly-sea-0553.test79-29a.workers.dev/",
-//   "https://mute-bonus-b2b6.test78-564.workers.dev/",
-//   "https://fragrant-silence-a7d1.test77-a68.workers.dev/",
-
-//   "https://weathered-king-9f51.test76-4e9.workers.dev/",
-//   "https://delicate-dream-a0ac.test75-da4.workers.dev/",
 //   "https://twilight-mode-af23.test74-635.workers.dev/",
 //   "https://sweet-feather-58ef.test73-bfb.workers.dev/",
 
