@@ -203,7 +203,7 @@ export async function GET(req: NextRequest) {
     });
 
     const res = await fetch(
-      `https://online-seller-tau.vercel.app/backend_/servers/resshin_?${params.toString()}`,
+      `https://school-project-production-9d70.up.railway.app/resshin?${params.toString()}`,
       { method: "GET" },
     );
 
