@@ -569,8 +569,9 @@ export async function extractResshin(
     )
       .filter(Boolean)
       .map(async (q: any) => {
-        const encrypted = await encryptUrl(q.url);
-
+        const expiresAt = Date.now() + 5 * 60 * 60 * 1000;
+        const payload = `${expiresAt}|${q.url}`;
+        const encrypted = await encryptUrl(payload);
         return {
           resolution: q.resolution,
           format: q.format,
