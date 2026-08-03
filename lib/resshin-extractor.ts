@@ -1,6 +1,7 @@
 // @/lib/resshin-extractor.ts
 import crypto from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
+import { encryptUrl } from "./encryptor";
 
 // ==================== CONFIG ====================
 const GATEWAY_SECRET = "76iRl07s0xSN9jqmEWAt79EBJZulIQIsV64FZr2O";
@@ -560,22 +561,27 @@ export async function extractResshin(
   //   type: (q.url ?? "").includes(".m3u8") ? ("hls" as const) : ("mp4" as const),
   //   link: `https://proxy.zxcstream.xyz/proxy?url=${encodeURIComponent(q.url)}`,
   // }));
-  const links = PREFERRED_ORDER.map((res) =>
-    sortedDownloads.find(
-      (q: any) => String(q.resolution).replace(/p$/i, "") === res,
-    ),
-  )
-    .filter(Boolean)
-    .map((q: any) => ({
-      resolution: q.resolution,
-      format: q.format,
-      size: q.size,
-      type: (q.url ?? "").includes(".m3u8")
-        ? ("hls" as const)
-        : ("mp4" as const),
-      link: `https://proxy.zxcstream.xyz/proxy?url=${encodeURIComponent(q.url)}`,
-    }));
+  const links = await Promise.all(
+    PREFERRED_ORDER.map((res) =>
+      sortedDownloads.find(
+        (q: any) => String(q.resolution).replace(/p$/i, "") === res,
+      ),
+    )
+      .filter(Boolean)
+      .map(async (q: any) => {
+        const encrypted = await encryptUrl(q.url);
 
+        return {
+          resolution: q.resolution,
+          format: q.format,
+          size: q.size,
+          type: (q.url ?? "").includes(".m3u8")
+            ? ("hls" as const)
+            : ("mp4" as const),
+          link: `https://proxy.zxcstream.xyz/proxy?data=${encodeURIComponent(encrypted)}`,
+        };
+      }),
+  );
   const active = dubs.find((d: any) => d.lanCode === activeDubLang) ?? dubs[0];
 
   return {

@@ -4,6 +4,7 @@ import { validateBackendToken } from "@/lib/validate-token";
 import { FIELD_MAP } from "@/lib/token";
 import { isValidReferer } from "@/lib/allowed-referers";
 import { createClient } from "@supabase/supabase-js";
+import { encryptUrl } from "@/lib/encryptor";
 
 const supabase = createClient(
   process.env.SUPABASE_URL_MOVIEBOX_APP!,
@@ -125,22 +126,27 @@ export async function GET(req: NextRequest) {
           if (sortedDownloads.length) {
             const PREFERRED_ORDER = ["720", "480", "1080", "360"];
 
-            const links = PREFERRED_ORDER.map((res) =>
-              sortedDownloads.find(
-                (q: any) => String(q.resolution).replace(/p$/i, "") === res,
-              ),
-            )
-              .filter(Boolean)
-              .map((q: any) => ({
-                resolution: q.resolution,
-                format: q.format,
-                size: q.size,
-                type: (q.url ?? "").includes(".m3u8")
-                  ? ("hls" as const)
-                  : ("mp4" as const),
-                link: `https://proxy.zxcstream.xyz/proxy?url=${encodeURIComponent(q.url)}`,
-              }));
+            const links = await Promise.all(
+              PREFERRED_ORDER.map((res) =>
+                sortedDownloads.find(
+                  (q: any) => String(q.resolution).replace(/p$/i, "") === res,
+                ),
+              )
+                .filter(Boolean)
+                .map(async (q: any) => {
+                  const encrypted = await encryptUrl(q.url);
 
+                  return {
+                    resolution: q.resolution,
+                    format: q.format,
+                    size: q.size,
+                    type: (q.url ?? "").includes(".m3u8")
+                      ? ("hls" as const)
+                      : ("mp4" as const),
+                    link: `https://proxy.zxcstream.xyz/proxy?data=${encodeURIComponent(encrypted)}`,
+                  };
+                }),
+            );
             if (links.length) {
               const active =
                 dubs.find((d: any) => d.lanCode === activeDubLang) ?? dubs[0];
