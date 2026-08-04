@@ -103,10 +103,10 @@ export const proxies = [
   "https://long-meadow-047f.vps9-9ce.workers.dev/",
   "https://damp-rain-dad6.icarus048.workers.dev/",
   // "https://little-frog-dbca.icarus049.workers.dev/",
-
-  // "https://tight-fog-810b.icarus046.workers.dev/",
+  "https://small-bonus-631a.icarus044.workers.dev/",
+  "https://tight-fog-810b.icarus046.workers.dev/",
   // "https://dawn-violet-1bfc.icarus045.workers.dev/",
-  // "https://small-bonus-631a.icarus044.workers.dev/",
+
   // "https://old-smoke-c852.icarus043.workers.dev/",
   // "https://late-meadow-f5cf.icarus042.workers.dev/",
   // "https://autumn-sky-7829.icarus041.workers.dev/",
