@@ -105,7 +105,7 @@ export function LyricsServerPicker({
       className={cn(
         "h-full inset-0 absolute right-0 z-40",
         "pointer-events-none",
-        "bg-linear-to-l from-black/80 lg:via-transparent to-transparent",
+        "bg-linear-to-l from-black/60 lg:via-transparent to-transparent",
       )}
       onPointerMove={lockTimer}
     >
@@ -142,6 +142,7 @@ export function LyricsServerPicker({
               className={cn(
                 "h-auto! w-fit! ml-auto",
                 "transition-all! duration-200",
+                "[text-shadow:0_2px_4px_rgba(0,0,0,0.5)]",
                 "pointer-events-auto cursor-pointer select-none",
                 "group text-end",
                 "lg:py-10 md:py-8 py-5 landscape:py-3",

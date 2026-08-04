@@ -4,10 +4,10 @@ import { useSubtitleCue } from "./useSubtitleCue ";
 import { useSettingsStore } from "@/zustand/settings-store";
 
 const fontSizeMap: Record<string, string> = {
-  small: "lg:text-2xl md:text-base text-xs",
-  medium: "lg:text-4xl md:text-lg text-sm",
-  large: "lg:text-5xl md:text-xl text-base",
-  "x-large": "lg:text-6xl text-2xl",
+  small: "text-[clamp(1.125rem,1.5vw,1.875rem)]", // 18px → 30px
+  medium: "text-[clamp(1.375rem,2vw,2.5rem)]", // 22px → 40px
+  large: "text-[clamp(1.75rem,2.5vw,3rem)]", // 28px → 48px
+  "x-large": "text-[clamp(2.25rem,3.2vw,3.75rem)]", // 36px → 60px
 };
 
 const bgOpacityMap: Record<string, string> = {
@@ -66,26 +66,25 @@ export default function SubtitleOverlay({
         "absolute left-1/2 -translate-x-1/2 z-10",
         "text-center",
         "px-3 landscape:px-1.5 py-1",
-        "rounded",
+        "rounded md:font-semibold font-medium",
         "lg:max-w-[80%] max-w-[98%]",
         "pointer-events-none",
         "landscape:text-[0.6rem]",
         "transition duration-300 delay-100",
+        "text-[clamp(1.5rem,2.3vw,2rem)]",
+        "[text-shadow:0_2px_4px_rgba(0,0,0,0.8),0_4px_12px_rgba(0,0,0,0.6)]",
         fontSizeMap[fontSize] ?? fontSizeMap["medium"],
         bgOpacityMap[bgOpacity] ?? bgOpacityMap["medium"],
-        position === "bottom" ? "bottom-0" : "top-0",
         position === "bottom"
           ? isVisible
-            ? "-translate-y-25 md:-translate-y-20 lg:-translate-y-30 landscape:-translate-y-18"
-            : "-translate-y-10 md:-translate-y-10 lg:-translate-y-15 landscape:-translate-y-5"
+            ? "bottom-24 md:bottom-20 lg:bottom-28 landscape:bottom-16"
+            : "bottom-8 md:bottom-8 lg:bottom-12 landscape:bottom-4"
           : isVisible
-            ? "translate-y-15 lg:translate-y-25"
-            : "translate-y-5 lg:translate-y-10",
+            ? "top-16 md:top-20 lg:top-24"
+            : "top-6 md:top-8 lg:top-10",
       )}
       style={{
         color: fontColorMap[fontColor] ?? fontColorMap["white"],
-        textShadow:
-          "0px 0px 1px rgba(0,0,0,1), 0px 0px 2px rgba(0,0,0,1), 0px 0px 2px rgba(0,0,0,1), 0px 0px 2px rgba(0,0,0,1), 0px 0px 2px rgba(0,0,0,1)",
       }}
       dangerouslySetInnerHTML={{ __html: cue }}
     />

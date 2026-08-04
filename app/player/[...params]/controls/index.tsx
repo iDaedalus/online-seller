@@ -232,7 +232,7 @@ export default function Settings({
         {open && (
           <>
             <motion.div
-              className="fixed inset-0 z-10 bg-black/60"
+              className="fixed inset-0 z-10 bg-black/30"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -243,7 +243,7 @@ export default function Settings({
             />
 
             <motion.div
-              className="absolute md:right-0 right-1/2 translate-x-1/2 md:translate-x-0 bottom-full lg:mb-3 z-20 lg:w-xs w-3xs bg-neutral-950/80 backdrop-blur-lg rounded-md shadow-xl overflow-hidden"
+              className="absolute md:right-0 right-1/2 translate-x-1/2 md:translate-x-0 bottom-full lg:mb-3 z-20 lg:w-90 w-3xs bg-neutral-950/80 backdrop-blur-lg rounded-md shadow-xl overflow-hidden"
               initial={{ opacity: 0, scale: 0.95, y: -6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -6 }}

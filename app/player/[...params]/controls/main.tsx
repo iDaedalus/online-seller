@@ -155,7 +155,7 @@ export default function MainControls({
   const [hoverX, setHoverX] = useState(0);
   const [open, setOpen] = useState(false);
   const [selectSeason, setSeasonSelect] = useState(season);
- 
+
   const handleSliderHover = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!sliderRef.current || !duration) return;
 
@@ -182,10 +182,10 @@ export default function MainControls({
         "z-50 absolute inset-0",
         "flex flex-col justify-between",
         "pointer-events-none",
-        "bg-linear-to-b from-black/40 via-transparent to-black/70",
+        "bg-linear-to-b from-black/30 via-transparent to-black/60",
 
         "after:absolute after:inset-0 after:content-['']",
-        "after:bg-linear-to-bl after:from-transparent after:via-transparent after:to-black/70",
+        "after:bg-linear-to-bl after:from-transparent after:via-transparent after:to-black/50",
       )}
       onPointerMove={lockTimer}
       onPointerDown={lockTimer}
@@ -250,7 +250,7 @@ export default function MainControls({
           )}
           <button
             onClick={() => setShowServer((prev) => !prev)}
-            className="cursor-pointer pointer-events-auto"
+            className="cursor-pointer pointer-events-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
           >
             <Layers2
               strokeWidth={3}
@@ -285,7 +285,8 @@ export default function MainControls({
             ></div>
             <p
               className={cn(
-                "lg:text-base md:text-sm text-gray-300 tracking-wide",
+                "lg:text-base md:text-sm text-gray-400 tracking-wide",
+                "[text-shadow:0_2px_4px_rgba(0,0,0,0.5)]",
               )}
             >
               You're Watching
@@ -296,6 +297,7 @@ export default function MainControls({
               "text-[clamp(1.5rem,2.3vw,2rem)]",
               " md:mt-1",
               "font-bold tracking-wide",
+              "[text-shadow:0_2px_4px_rgba(0,0,0,0.5)]",
             )}
           >
             {title} {media_type === "tv" ? `S${season}E${episode}` : ""} ({year}
@@ -304,9 +306,10 @@ export default function MainControls({
           <div
             className={cn(
               "lg:text-lg md:text-sm",
-              "text-gray-400 font-medium",
+              "text-gray-300 font-medium",
               "md:mt-2",
               "flex gap-3",
+              "[text-shadow:0_2px_4px_rgba(0,0,0,0.5)]",
             )}
           >
             <p>{media_type === "tv" ? "TV Show" : "Movie"}</p> /<p>{genre}</p>/
@@ -358,6 +361,7 @@ export default function MainControls({
                 "md:hidden",
                 "flex justify-between",
                 "text-sm landscape:text-xs",
+                "[text-shadow:0_2px_4px_rgba(0,0,0,0.5)]",
               )}
             >
               <span>{formatTime(currentTime)}</span>
@@ -374,7 +378,7 @@ export default function MainControls({
             <div className={cn("flex items-center md:gap-3 gap-6")}>
               <button
                 onClick={controls.togglePlay}
-                className="text-white/80 hover:text-white cursor-pointer"
+                className="text-white/80 hover:text-white cursor-pointer   drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
               >
                 {playback.playing ? (
                   <motion.div
@@ -410,7 +414,7 @@ export default function MainControls({
               <div className="flex items-center gap-2 group">
                 <button
                   onClick={controls.toggleMute}
-                  className="text-white/80 hover:text-white cursor-pointer"
+                  className="text-white/80 hover:text-white cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                 >
                   {ui.muted || ui.volume === 0 ? (
                     <motion.div
@@ -506,7 +510,7 @@ export default function MainControls({
                   onPointerMove={lockTimer}
                   onPointerDown={lockTimer}
                   className={cn(
-                    "lg:-translate-y-0.5  text-white/80 hover:text-white cursor-pointer",
+                    "lg:-translate-y-0.5  text-white/80 hover:text-white cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]",
                     open ? "text-foreground" : "",
                   )}
                 >
@@ -526,7 +530,7 @@ export default function MainControls({
               </button> */}
               <button
                 onClick={controls.toggleFullscreen}
-                className="cursor-pointer text-white/80 hover:text-white"
+                className="cursor-pointer text-white/80 hover:text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
               >
                 {ui.fullscreen ? (
                   <motion.div
