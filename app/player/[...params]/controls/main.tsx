@@ -19,7 +19,7 @@ import Episodes from "../episodes";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DubTypes, QualityTrack } from "@/hooks/source";
 import Link from "next/link";
-import { Layers2 } from "lucide-react";
+import { Cloud, Inbox, Layers2, Server, TextAlignEnd } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { SeasonsType } from "@/hooks/tmdb-types";
@@ -252,10 +252,10 @@ export default function MainControls({
             onClick={() => setShowServer((prev) => !prev)}
             className="cursor-pointer pointer-events-auto drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
           >
-            <Layers2
+            <Inbox
               strokeWidth={3}
               className={cn(
-                "lg:size-8 md:size-7 size-6.5 landscape:size-5",
+                "lg:size-8 md:size-7 size-6.5 landscape:size-5 ",
                 showServer ? "text-foreground" : "text-gray-300",
               )}
             />

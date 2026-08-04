@@ -145,15 +145,15 @@ export function LyricsServerPicker({
                 "[text-shadow:0_2px_4px_rgba(0,0,0,0.5)]",
                 "pointer-events-auto cursor-pointer select-none",
                 "group text-end",
-                "lg:py-10 md:py-8 py-5 landscape:py-3",
+                "lg:py-8 md:py-6 py-5 landscape:py-3",
                 "lg:px-8 px-2",
                 isActive &&
-                  "lg:-translate-x-15 -translate-x-8 landscape:-translate-x-4",
+                  "lg:-translate-x-20 -translate-x-8 landscape:-translate-x-4",
                 isNear &&
-                  "lg:-translate-x-8 -translate-x-4 landscape:-translate-x-2 opacity-50",
+                  "lg:-translate-x-10 -translate-x-4 landscape:-translate-x-2 opacity-80",
                 !isActive &&
                   !isNear &&
-                  "lg:opacity-30 opacity-10 pointer-events-none",
+                  "lg:opacity-30 opacity-10 pointer-events-none md:pointer-events-auto",
               )}
               onClick={() => handleClick(i)}
             >
@@ -186,19 +186,23 @@ export function LyricsServerPicker({
 
               <span
                 className={cn(
-                  "capitalize",
+                  "capitalize font-medium",
                   "flex justify-end items-center gap-2",
                   "lg:text-base text-xs landscape:text-[0.6rem]",
                   "lg:mt-3 mt-1.5 landscape:mt-0.5",
-                  isPlaying ? "text-green-600" : statusClass[s.status],
+                  isPlaying ? "text-green-500" : statusClass[s.status],
                 )}
               >
                 <p>{isPlaying ? "connected" : statusLabel[s.status]}</p>
 
                 {isPlaying ? (
-                  <Cast className={cn("size-4 landscape:size-2.5")} />
+                  <Cast
+                    strokeWidth={3}
+                    className={cn("size-4 landscape:size-2.5")}
+                  />
                 ) : (
                   <Icon
+                    strokeWidth={3}
                     className={cn(
                       "size-4 landscape:size-2.5",
                       (s.status === "checking" || s.status === "connecting") &&

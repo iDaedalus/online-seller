@@ -24,13 +24,13 @@ export const initialServers: ServerTypes[] = [
     name: "Icarus II",
     server: "icaruz",
     status: "queue",
-    desc: "Download Support",
+    desc: "Download & Multi Audio Support",
   },
   {
     name: "Berkas III",
     server: "berkas__",
     status: "queue",
-    desc: "4K Support",
+    desc: "4K Support & Fast",
   },
   {
     name: "Resshin IV",
